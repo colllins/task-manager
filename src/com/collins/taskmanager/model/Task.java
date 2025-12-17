@@ -21,6 +21,7 @@ public class Task {
     // from storage (for example, when loading from a file).
     public Task() {}
 
+
     public Task(String title, String description, TaskStatus status, TaskPriority priority, LocalDate dueDate) {
         this.title = title;
         this.description = description;
