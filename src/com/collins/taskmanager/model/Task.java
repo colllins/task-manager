@@ -17,6 +17,10 @@ public class Task {
     private LocalDateTime createdAt;    // When the task was first created.
     private LocalDateTime updatedAt;    // When the task was last modified.
 
+    // No-argument constructor used primarily for reconstructing tasks
+    // from storage (for example, when loading from a file).
+    public Task() {}
+
     public Task(String title, String description, TaskStatus status, TaskPriority priority, LocalDate dueDate) {
         this.title = title;
         this.description = description;
@@ -88,6 +92,14 @@ public class Task {
         return updatedAt;
     }
 
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
     @Override
     public String toString() {
         return "New Task Created: " +
@@ -100,4 +112,5 @@ public class Task {
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt;
     }
+
 }
