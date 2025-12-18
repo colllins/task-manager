@@ -23,6 +23,11 @@ public class InMemoryTaskRepository implements TaskRepository {
             entity.setId(idCounter);
             idCounter++;
         }
+
+        //for loaded or old task, to prevent id collision from file
+        if(entity.getId() >= idCounter){
+            idCounter = entity.getId()+1;
+        }
         storage.put(entity.getId(),entity);
 
         return entity;
