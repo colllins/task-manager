@@ -13,11 +13,28 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Scanner;
 
+/**
+ * Console-based entry point for the Task Manager application.
+ * <p>
+ * Responsibilities:
+ * - Wire together repository, service, and file storage.
+ * - Load existing tasks from disk at startup.
+ * - Present an interactive menu for creating, listing, updating,
+ *   filtering, deleting, and saving tasks.
+ */
 public class TaskManagerApp {
     public static void main(String[] args) {
+
+        // Set up core components:
+        // - In-memory repository for storing tasks during this run
+        // - Service layer for business logic
+        // - File-based storage for persistence across runs
         TaskRepository repo = new InMemoryTaskRepository();
         TaskService service = new TaskService(repo);
         FileTaskStorage taskStorage = new FileTaskStorage();
+
+        // Load previously saved tasks from disk (if any),
+        // and push them into the repository so they are available in memory.
         try{
             List<Task> tasks = taskStorage.loadAll();
             for (Task task:tasks) {
@@ -29,8 +46,12 @@ public class TaskManagerApp {
         }
         Scanner scanner = new Scanner(System.in);
         int num=0;
+
+        // Track current number of tasks in memory for some menu checks.
         int size = service.getAllTasks().size();
 
+        // Main interactive loop:
+        // Continues until the user chooses option 7 (Exit).
         do{
             System.out.print("Enter 1 to Create New Task");
             System.out.println();
@@ -46,8 +67,10 @@ public class TaskManagerApp {
             System.out.println();
             System.out.print("Enter 7 to Exit: ");
             try{
+                // Read the menu choice from the user.
                 num = Integer.parseInt(scanner.nextLine());
 
+                // 1 – Create a new task by collecting all required fields.
                  if(num==1){
                     System.out.println();
                     System.out.print("Enter Task Title: ");
@@ -62,9 +85,13 @@ public class TaskManagerApp {
                     LocalDate dueDate = LocalDate.parse(scanner.nextLine());
                     Task task = new Task(title,desc,status,priority,dueDate);
                     task = service.createTask(task);
+
+                     // Update cached size after creating a new task.
                     size= service.getAllTasks().size();
                     System.out.println("Task created with Id: "+task.getId());
                     System.out.println();
+
+                     // 2 – List all tasks, sorted by due date.
                 }else if(num==2){
                     System.out.println();
                     if (size==0){
@@ -73,6 +100,8 @@ public class TaskManagerApp {
                         service.getAllTasks().forEach(System.out::println);
                     }
                     System.out.println();
+
+                     // 3 – Update the status of an existing task by id.
                 }else if(num==3){
                     System.out.println();
                     System.out.print("Enter id of Task status to be updated: ");
@@ -82,6 +111,8 @@ public class TaskManagerApp {
                     Task task = service.updateStatus(id,status);
                     System.out.println("Status updated for task with id "+task.getId());
                     System.out.println();
+
+                     // 4 – Filter tasks by status, priority, or due date.
                 }else if(num==4){
                     System.out.println();
                     if(size>0){
@@ -96,6 +127,7 @@ public class TaskManagerApp {
                         String c = scanner.nextLine().toLowerCase();
                         System.out.println();
 
+                        // 4a – Filter by status.
                         if(c.equals("a")){
                             System.out.println();
                             System.out.print("Enter Status to Filter By: ");
@@ -106,6 +138,8 @@ public class TaskManagerApp {
                                 System.out.println("No Tasks matched that filter");
                             }
                             System.out.println();
+
+                            // 4b – Filter by priority.
                         }else if(c.equals("b")){
                             System.out.println();
                             System.out.print("Enter Priority to Filter By: ");
@@ -115,6 +149,8 @@ public class TaskManagerApp {
                             }else{
                                 System.out.println("No Tasks matched that filter");
                             }
+
+                            // 4c – Filter by tasks due before a given date.
                         }else if(c.equals("c")){
                             System.out.println();
                             System.out.print("Enter Due Date Before to Filter By: ");
@@ -125,6 +161,8 @@ public class TaskManagerApp {
                                 System.out.println("No Tasks matched that filter");
                             }
                         }
+
+                        // 4d – Filter by tasks due after a given date.
                         else if(c.equals("d")){
                             System.out.println();
                             System.out.print("Enter Due Date After to Filter By: ");
@@ -134,6 +172,8 @@ public class TaskManagerApp {
                             }else{
                                 System.out.println("No Tasks matched that filter");
                             }
+
+                            // Invalid sub-option for filter menu.
                         }else{
                             System.out.println("Invalid Input. try Again");
                             System.out.println();
@@ -143,18 +183,23 @@ public class TaskManagerApp {
                         System.out.println();
                     }
 
+                     // 5 – Delete a task by id.
                 }else if(num==5){
                     System.out.println();
                     try{
                         System.out.print("Enter id for task to be Deleted: ");
                         int id = Integer.parseInt(scanner.nextLine());
                         service.deleteTask(id);
+
+                        // Update cached size after deletion.
                         size = service.getAllTasks().size();
                         System.out.println("Task Deleted!");
                     }catch (RuntimeException e){
                         System.out.println(e.getMessage());
                     }
                     System.out.println();
+
+                     // 6 – Save all current tasks to the backing file.
                 }else if(num==6){
                     try{
                         System.out.println();
@@ -164,6 +209,8 @@ public class TaskManagerApp {
                     }catch (IOException e) {
                         System.out.println(e.getMessage());
                     }
+
+                     // 7 – Exit the program after saving once more.
                 }else if(num==7){
                     try{
                         System.out.println();
@@ -173,16 +220,20 @@ public class TaskManagerApp {
                     }catch (IOException e) {
                         System.out.println(e.getMessage());
                     }
+
+                     // Any other number outside 1–7.
                 }else{
                      System.out.println();
                      System.out.println("Number entered is out of range! Try Again!");
                      System.out.println();
                  }
             }catch (NumberFormatException e){
+                // Handles non-numeric menu input (for example, typing letters instead of a number).
                 System.out.println("Not a passable integer");
             }
-        }while(num!=7);
+        }while(num!=7);         // Loop terminates when user chooses Exit.
 
+        // Clean up scanner resource before exiting the application
         scanner.close();
     }
 }
